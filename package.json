@@ -14,7 +14,6 @@
     "@types/cytoscape": "^3.21.9",
     "autoprefixer": "^10.4.21",
     "cytoscape": "^3.32.0",
-    "cytoscape-react": "^4.0.0",
     "postcss": "^8.5.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
