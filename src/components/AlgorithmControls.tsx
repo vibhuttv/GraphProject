@@ -11,6 +11,10 @@ interface AlgorithmControlsProps {
   onClearResults: () => void;
   dfsResult?: DFSResult;
   sccResult?: SCCResult;
+  bridgesOn: boolean;
+  onToggleBridges: (on: boolean) => void;
+  articulationOn: boolean;
+  onToggleArticulation: (on: boolean) => void;
 }
 
 const AlgorithmControls: React.FC<AlgorithmControlsProps> = ({
@@ -21,7 +25,11 @@ const AlgorithmControls: React.FC<AlgorithmControlsProps> = ({
   onRunSCC,
   onClearResults,
   dfsResult,
-  sccResult
+  sccResult,
+  bridgesOn,
+  onToggleBridges,
+  articulationOn,
+  onToggleArticulation
 }) => {
   return (
     <div className="space-y-6">
@@ -99,6 +107,30 @@ const AlgorithmControls: React.FC<AlgorithmControlsProps> = ({
             className="w-full px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
             Find SCCs
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleBridges(!bridgesOn)}
+            className={[
+              'w-full px-4 py-2 rounded transition-colors',
+              bridgesOn
+                ? 'bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 text-white shadow-lg'
+                : 'bg-gray-600 text-white',
+            ].join(' ')}
+          >
+            {bridgesOn ? 'Bridges: ON' : 'Bridges: OFF'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleArticulation(!articulationOn)}
+            className={[
+              'w-full px-4 py-2 rounded transition-colors',
+              articulationOn
+                ? 'bg-gradient-to-r from-red-500 via-red-400 to-red-600 text-white shadow-lg'
+                : 'bg-gray-600 text-white',
+            ].join(' ')}
+          >
+            {articulationOn ? 'Articulation Points: ON' : 'Articulation Points: OFF'}
           </button>
           <button
             onClick={onClearResults}

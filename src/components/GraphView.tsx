@@ -8,6 +8,8 @@ interface GraphViewProps {
   sccResult?: SCCResult;
   onNodeClick?: (nodeId: string) => void;
   onEdgeClick?: (edgeId: string) => void;
+  bridges?: [string, string][];
+  articulationPoints?: string[];
 }
 
 interface CytoscapeEvent {
@@ -22,7 +24,9 @@ const GraphView: React.FC<GraphViewProps> = ({
   dfsResult,
   sccResult,
   onNodeClick,
-  onEdgeClick
+  onEdgeClick,
+  bridges = [],
+  articulationPoints = [],
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cytoscapeInstance, setCytoscapeInstance] = useState<cytoscape.Core | null>(null);
@@ -32,6 +36,56 @@ const GraphView: React.FC<GraphViewProps> = ({
     const initCytoscape = async () => {
       try {
         const cytoscape = await import('cytoscape');
+        const sccColors = [
+          '#f87171', // red
+          '#fbbf24', // yellow
+          '#34d399', // green
+          '#60a5fa', // blue
+          '#a78bfa', // purple
+          '#f472b6', // pink
+          '#38bdf8', // sky
+          '#facc15', // amber
+          '#4ade80', // emerald
+          '#c084fc', // violet
+        ];
+        const sccStyles = sccColors.map((color, idx) => ({
+          selector: `.scc-${idx}`,
+          style: {
+            'background-color': color,
+            'border-color': '#fff',
+            'border-width': 4,
+            'transition-property': 'background-color, border-color',
+            'transition-duration': 300
+          }
+        }));
+        const bridgeStyle = {
+          selector: '.edge-bridge',
+          style: {
+            'line-color': '#ef4444',
+            'width': 3,
+            'opacity': 1,
+            'target-arrow-color': settings.isDirected ? '#ef4444' : 'transparent',
+            'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
+          }
+        };
+        const highlightStyle = {
+          selector: '.scc-highlight',
+          style: {
+            'border-color': '#fff',
+            'border-width': 8
+          }
+        };
+        const articulationStyle = {
+          selector: '.node-articulation',
+          style: {
+            'border-color': 'rgba(249, 102, 43, 0.8)',
+            // 'border-width': 8,
+            'background-color': 'inherit',
+            'transition-property': 'border-color, border-width',
+            'transition-duration': 300,
+
+          }
+        };
         const cy = cytoscape.default({
           container: containerRef.current,
           elements: {
@@ -49,7 +103,7 @@ const GraphView: React.FC<GraphViewProps> = ({
                 source: edge.source,
                 target: edge.target,
                 weight: edge.weight,
-                label: edge.label || `${edge.source}->${edge.target}`
+                label: settings.isWeighted && edge.weight !== undefined ? String(edge.weight) : ''
               }
             }))
           },
@@ -79,35 +133,41 @@ const GraphView: React.FC<GraphViewProps> = ({
                 'curve-style': 'bezier',
                 'label': settings.isWeighted ? 'data(weight)' : '',
                 'font-size': 10,
-                'color': '#6b7280'
+                'color': '#facc15',
+                'text-margin-x': 12,
+                'text-margin-y': -8
               }
             },
             {
               selector: '.edge-tree',
               style: {
                 'line-color': '#10b981',
-                'target-arrow-color': settings.isDirected ? '#10b981' : 'transparent'
+                'target-arrow-color': settings.isDirected ? '#10b981' : 'transparent',
+                'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-back',
               style: {
                 'line-color': '#ef4444',
-                'target-arrow-color': settings.isDirected ? '#ef4444' : 'transparent'
+                'target-arrow-color': settings.isDirected ? '#ef4444' : 'transparent',
+                'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-forward',
               style: {
                 'line-color': '#3b82f6',
-                'target-arrow-color': settings.isDirected ? '#3b82f6' : 'transparent'
+                'target-arrow-color': settings.isDirected ? '#3b82f6' : 'transparent',
+                'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-cross',
               style: {
                 'line-color': '#f59e0b',
-                'target-arrow-color': settings.isDirected ? '#f59e0b' : 'transparent'
+                'target-arrow-color': settings.isDirected ? '#f59e0b' : 'transparent',
+                'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
@@ -117,13 +177,10 @@ const GraphView: React.FC<GraphViewProps> = ({
                 'border-color': '#0891b2'
               }
             },
-            {
-              selector: '.node-scc',
-              style: {
-                'background-color': '#8b5cf6',
-                'border-color': '#a855f7'
-              }
-            }
+            ...sccStyles,
+            bridgeStyle,
+            articulationStyle,
+            highlightStyle
           ],
           layout: {
             name: 'cose',
@@ -164,7 +221,7 @@ const GraphView: React.FC<GraphViewProps> = ({
         setCytoscapeInstance(null);
       }
     };
-  }, []);
+  }, [settings]);
 
   // Update graph when data changes
   useEffect(() => {
@@ -191,7 +248,7 @@ const GraphView: React.FC<GraphViewProps> = ({
         source: edge.source,
         target: edge.target,
         weight: edge.weight,
-        label: edge.label || `${edge.source}->${edge.target}`
+        label: settings.isWeighted && edge.weight !== undefined ? String(edge.weight) : ''
       }
     }));
 
@@ -225,21 +282,85 @@ const GraphView: React.FC<GraphViewProps> = ({
 
   // Apply SCC styling
   useEffect(() => {
-    if (!cytoscapeInstance || !sccResult) return;
+    if (!cytoscapeInstance) return;
 
-    // Clear previous SCC styling
-    cytoscapeInstance.elements().removeClass('node-scc');
+    // Remove all previous SCC classes
+    cytoscapeInstance.nodes().forEach(node => {
+      let classStr: string;
+      const nodeClasses = node.classes();
+      if (Array.isArray(nodeClasses)) {
+        classStr = nodeClasses.join(' ');
+      } else if (typeof nodeClasses === 'string') {
+        classStr = nodeClasses;
+      } else {
+        classStr = '';
+      }
+      classStr.split(' ').forEach((cls: string) => {
+        if (cls.startsWith('scc-')) node.removeClass(cls);
+      });
+      node.removeClass('scc-highlight');
+    });
 
-    // Apply SCC styling
-    sccResult.components.forEach(component => {
+    if (!sccResult) return;
+
+    // Assign SCC classes
+    sccResult.components.forEach((component, idx) => {
       component.forEach(nodeId => {
         const node = cytoscapeInstance.getElementById(nodeId);
         if (node.length > 0) {
-          node.addClass('node-scc');
+          node.addClass(`scc-${idx}`);
         }
       });
     });
   }, [sccResult, cytoscapeInstance]);
+
+  // Interactive SCC highlight on node click
+  useEffect(() => {
+    if (!cytoscapeInstance || !sccResult) return;
+
+    const handler = (evt: any) => {
+      // Remove previous highlights
+      cytoscapeInstance.nodes().removeClass('scc-highlight');
+      const nodeId = evt.target.id();
+      // Find which SCC this node belongs to
+      const sccIdx = sccResult.components.findIndex(component => component.includes(nodeId));
+      if (sccIdx !== -1) {
+        sccResult.components[sccIdx].forEach(id => {
+          const node = cytoscapeInstance.getElementById(id);
+          if (node.length > 0) node.addClass('scc-highlight');
+        });
+      }
+    };
+    cytoscapeInstance.on('tap', 'node', handler);
+    return () => {
+      cytoscapeInstance.removeListener('tap', 'node', handler);
+    };
+  }, [cytoscapeInstance, sccResult]);
+
+  // Highlight bridge edges
+  useEffect(() => {
+    if (!cytoscapeInstance) return;
+    // Remove previous bridge classes
+    cytoscapeInstance.edges().removeClass('edge-bridge');
+    // Add bridge class to bridge edges
+    bridges.forEach(([source, target]) => {
+      // Try both source-target and target-source (since undirected)
+      const edge1 = cytoscapeInstance.getElementById(`${source}-${target}`);
+      const edge2 = cytoscapeInstance.getElementById(`${target}-${source}`);
+      if (edge1.length > 0) edge1.addClass('edge-bridge');
+      if (edge2.length > 0) edge2.addClass('edge-bridge');
+    });
+  }, [bridges, cytoscapeInstance]);
+
+  // Highlight articulation points
+  useEffect(() => {
+    if (!cytoscapeInstance) return;
+    cytoscapeInstance.nodes().removeClass('node-articulation');
+    articulationPoints.forEach(nodeId => {
+      const node = cytoscapeInstance.getElementById(nodeId);
+      if (node.length > 0) node.addClass('node-articulation');
+    });
+  }, [articulationPoints, cytoscapeInstance]);
 
   if (error) {
     return (

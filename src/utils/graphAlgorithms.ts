@@ -143,3 +143,83 @@ export const getEdgeTypeColor = (type: EdgeType): string => {
     default: return '#6b7280';
   }
 };
+
+// Find bridges in an undirected graph using DFS (Tarjan's algorithm)
+export function findBridges(graphData: GraphData): { bridges: [string, string][] } {
+//   const n = graphData.nodes.length;
+  const adj: Record<string, string[]> = {};
+  graphData.nodes.forEach(node => { adj[node.id] = []; });
+  graphData.edges.forEach(edge => {
+    adj[edge.source].push(edge.target);
+    adj[edge.target].push(edge.source);
+  });
+  const visited: Record<string, boolean> = {};
+  const tin: Record<string, number> = {};
+  const low: Record<string, number> = {};
+  let timer = 0;
+  const bridges: [string, string][] = [];
+
+  function dfs(v: string, p: string | null) {
+    visited[v] = true;
+    tin[v] = low[v] = ++timer;
+    for (const to of adj[v]) {
+      if (to === p) continue;
+      if (visited[to]) {
+        low[v] = Math.min(low[v], tin[to]);
+      } else {
+        dfs(to, v);
+        low[v] = Math.min(low[v], low[to]);
+        if (low[to] > tin[v]) {
+          bridges.push([v, to]);
+        }
+      }
+    }
+  }
+
+  for (const node of graphData.nodes) {
+    if (!visited[node.id]) dfs(node.id, null);
+  }
+  return { bridges };
+}
+
+// Find articulation points in an undirected graph using DFS (Tarjan's algorithm)
+export function findArticulationPoints(graphData: GraphData): { points: string[] } {
+  const adj: Record<string, string[]> = {};
+  graphData.nodes.forEach(node => { adj[node.id] = []; });
+  graphData.edges.forEach(edge => {
+    adj[edge.source].push(edge.target);
+    adj[edge.target].push(edge.source);
+  });
+  const visited: Record<string, boolean> = {};
+  const tin: Record<string, number> = {};
+  const low: Record<string, number> = {};
+  let timer = 0;
+  const points = new Set<string>();
+
+  function dfs(v: string, p: string | null) {
+    visited[v] = true;
+    tin[v] = low[v] = ++timer;
+    let children = 0;
+    for (const to of adj[v]) {
+      if (to === p) continue;
+      if (visited[to]) {
+        low[v] = Math.min(low[v], tin[to]);
+      } else {
+        dfs(to, v);
+        low[v] = Math.min(low[v], low[to]);
+        if (low[to] >= tin[v] && p !== null) {
+          points.add(v);
+        }
+        ++children;
+      }
+    }
+    if (p === null && children > 1) {
+      points.add(v);
+    }
+  }
+
+  for (const node of graphData.nodes) {
+    if (!visited[node.id]) dfs(node.id, null);
+  }
+  return { points: Array.from(points) };
+}

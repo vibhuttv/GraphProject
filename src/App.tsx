@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // import React, { useState } from 'react';
 import GraphView from './components/GraphView';
 import GraphEditor from './components/GraphEditor';
 import AlgorithmControls from './components/AlgorithmControls';
 import type { GraphData, GraphSettings, DFSResult, SCCResult } from './types/graph';
-import { runDFS, findSCCs } from './utils/graphAlgorithms';
+import { runDFS, findSCCs, findBridges, findArticulationPoints } from './utils/graphAlgorithms';
 import './App.css';
 
 function App() {
@@ -15,6 +15,10 @@ function App() {
   });
   const [dfsResult, setDfsResult] = useState<DFSResult | undefined>();
   const [sccResult, setSccResult] = useState<SCCResult | undefined>();
+  const [bridgesOn, setBridgesOn] = useState(false);
+  const [bridges, setBridges] = useState<[string, string][]>([]);
+  const [articulationOn, setArticulationOn] = useState(false);
+  const [articulationPoints, setArticulationPoints] = useState<string[]>([]);
 
   const handleRunDFS = () => {
     if (graphData.nodes.length > 0) {
@@ -35,6 +39,30 @@ function App() {
   const handleClearResults = () => {
     setDfsResult(undefined);
     setSccResult(undefined);
+    setBridges([]);
+    setBridgesOn(false);
+    setArticulationPoints([]);
+    setArticulationOn(false);
+  };
+
+  const handleToggleBridges = (on: boolean) => {
+    setBridgesOn(on);
+    if (on) {
+      const { bridges } = findBridges(graphData);
+      setBridges(bridges);
+    } else {
+      setBridges([]);
+    }
+  };
+
+  const handleToggleArticulation = (on: boolean) => {
+    setArticulationOn(on);
+    if (on) {
+      const { points } = findArticulationPoints(graphData);
+      setArticulationPoints(points);
+    } else {
+      setArticulationPoints([]);
+    }
   };
 
   const handleNodeClick = (nodeId: string) => {
@@ -44,6 +72,18 @@ function App() {
   const handleEdgeClick = (edgeId: string) => {
     console.log('Edge clicked:', edgeId);
   };
+
+  // Recompute bridges when graph updates and bridgesOn is true
+  useEffect(() => {
+    if (bridgesOn) {
+      const { bridges } = findBridges(graphData);
+      setBridges(bridges);
+    }
+    if (articulationOn) {
+      const { points } = findArticulationPoints(graphData);
+      setArticulationPoints(points);
+    }
+  }, [graphData, bridgesOn, articulationOn]);
 
   return (
     <div className="min-h-screen text-white">
@@ -71,6 +111,8 @@ function App() {
                   sccResult={sccResult}
                   onNodeClick={handleNodeClick}
                   onEdgeClick={handleEdgeClick}
+                  bridges={bridgesOn ? bridges : []}
+                  articulationPoints={articulationOn ? articulationPoints : []}
                 />
               </div>
             </div>
@@ -96,6 +138,10 @@ function App() {
                 onClearResults={handleClearResults}
                 dfsResult={dfsResult}
                 sccResult={sccResult}
+                bridgesOn={bridgesOn}
+                onToggleBridges={handleToggleBridges}
+                articulationOn={articulationOn}
+                onToggleArticulation={handleToggleArticulation}
               />
             </div>
           </div>
