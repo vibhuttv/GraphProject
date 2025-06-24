@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+// import React, { useState } from 'react';
 import GraphView from './components/GraphView';
 import GraphEditor from './components/GraphEditor';
 import AlgorithmControls from './components/AlgorithmControls';
@@ -14,8 +15,6 @@ function App() {
   });
   const [dfsResult, setDfsResult] = useState<DFSResult | undefined>();
   const [sccResult, setSccResult] = useState<SCCResult | undefined>();
-  const [nodesInput, setNodesInput] = useState('');
-  const [edgesInput, setEdgesInput] = useState('');
 
   const handleRunDFS = () => {
     if (graphData.nodes.length > 0) {
@@ -44,42 +43,6 @@ function App() {
 
   const handleEdgeClick = (edgeId: string) => {
     console.log('Edge clicked:', edgeId);
-  };
-
-  const addNodesFromText = () => {
-    const lines = nodesInput.split('\n').map(l => l.trim()).filter(Boolean);
-    const newNodes = lines
-      .filter(id => !graphData.nodes.some(n => n.id === id))
-      .map(id => ({ id, label: id }));
-    if (newNodes.length) {
-      setGraphData({ ...graphData, nodes: [...graphData.nodes, ...newNodes] });
-    }
-    // setNodesInput('');
-  };
-
-  const addEdgesFromText = () => {
-    const lines = edgesInput.split('\n').map(l => l.trim()).filter(Boolean);
-    const isWeighted = settings.isWeighted;
-    let newNodes = [...graphData.nodes];
-    const newEdges = [];
-    for (const line of lines) {
-      const parts = line.split(/\s+/);
-      if (parts.length < 2) continue;
-      const [source, target, weightStr] = parts;
-      if (!newNodes.find(n => n.id === source)) newNodes.push({ id: source, label: source });
-      if (!newNodes.find(n => n.id === target)) newNodes.push({ id: target, label: target });
-      const edge = {
-        id: `${source}-${target}`,
-        source,
-        target,
-        ...(isWeighted && weightStr ? { weight: parseFloat(weightStr) } : {})
-      };
-      newEdges.push(edge);
-    }
-    if (newEdges.length) {
-      setGraphData({ nodes: newNodes, edges: [...graphData.edges, ...newEdges] });
-    }
-    // setEdgesInput('');
   };
 
   return (

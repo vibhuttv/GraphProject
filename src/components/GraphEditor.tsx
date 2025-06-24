@@ -7,69 +7,7 @@ interface GraphEditorProps {
 }
 
 const GraphEditor: React.FC<GraphEditorProps> = ({ graphData, onGraphDataChange }) => {
-  const [nodeInput, setNodeInput] = useState('');
-  const [edgeSource, setEdgeSource] = useState('');
-  const [edgeTarget, setEdgeTarget] = useState('');
-  const [edgeWeight, setEdgeWeight] = useState('');
   const [bulkInput, setBulkInput] = useState('');
-
-  // Node input state
-  const handleNodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNodeInput(e.target.value);
-    const value = e.target.value.trim();
-    if (value && !graphData.nodes.some(n => n.id === value)) {
-      const newNode = { id: value, label: value };
-      onGraphDataChange({ ...graphData, nodes: [...graphData.nodes, newNode] });
-    }
-  };
-
-  // Edge input state
-  const handleEdgeSourceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEdgeSource(e.target.value);
-    updateEdgeFromInputs(e.target.value, edgeTarget, edgeWeight);
-  };
-  const handleEdgeTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEdgeTarget(e.target.value);
-    updateEdgeFromInputs(edgeSource, e.target.value, edgeWeight);
-  };
-  const handleEdgeWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEdgeWeight(e.target.value);
-    updateEdgeFromInputs(edgeSource, edgeTarget, e.target.value);
-  };
-
-  function updateEdgeFromInputs(source: string, target: string, weight: string) {
-    const s = source.trim();
-    const t = target.trim();
-    if (!s || !t) return;
-    // Add nodes if missing
-    let nodes = [...graphData.nodes];
-    if (!nodes.find(n => n.id === s)) nodes.push({ id: s, label: s });
-    if (!nodes.find(n => n.id === t)) nodes.push({ id: t, label: t });
-    // Add edge if not present
-    const edgeId = `${s}-${t}`;
-    if (!graphData.edges.find(e => e.id === edgeId)) {
-      const newEdge = { id: edgeId, source: s, target: t };
-      if (weight.trim() !== '' && !isNaN(Number(weight))) {
-        (newEdge as any).weight = parseFloat(weight);
-      }
-      onGraphDataChange({ nodes, edges: [...graphData.edges, newEdge] });
-    }
-  }
-
-  const removeNode = (nodeId: string) => {
-    const updatedNodes = graphData.nodes.filter(n => n.id !== nodeId);
-    const updatedEdges = graphData.edges.filter(e => e.source !== nodeId && e.target !== nodeId);
-    onGraphDataChange({ nodes: updatedNodes, edges: updatedEdges });
-  };
-
-  const removeEdge = (edgeId: string) => {
-    const updatedEdges = graphData.edges.filter(e => e.id !== edgeId);
-    onGraphDataChange({ ...graphData, edges: updatedEdges });
-  };
-
-  const clearGraph = () => {
-    onGraphDataChange({ nodes: [], edges: [] });
-  };
 
   // Parse bulk input and update graph on every change
   useEffect(() => {

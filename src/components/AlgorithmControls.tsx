@@ -23,14 +23,6 @@ const AlgorithmControls: React.FC<AlgorithmControlsProps> = ({
   dfsResult,
   sccResult
 }) => {
-  const toggleDirected = () => {
-    onSettingsChange({ ...settings, isDirected: !settings.isDirected });
-  };
-
-  const toggleWeighted = () => {
-    onSettingsChange({ ...settings, isWeighted: !settings.isWeighted });
-  };
-
   return (
     <div className="space-y-6">
       {/* Graph Settings */}
