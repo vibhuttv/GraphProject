@@ -104,17 +104,16 @@ A powerful, interactive web application for visualizing and analyzing graph algo
 
 ### Creating a Graph
 
-1. **Add Nodes**: Use the bulk input to add multiple nodes
+1. **Adding values**: Use the bulk input to add multiple nodes
    ```
-   A,B,C,D,E
-   ```
-
-2. **Add Edges**: Specify edges with optional weights
-   ```
-   A-B:2,B-C:3,C-D:1,D-E:4
+   A -> Normally adding a node to panel
+   A B -> Adding an unweighted edge, Bidirectional if undirected, otherwise source(A) to target(B)
+   A B C -> Same Edge(AB) as shown in 2nd line, with a weight value 'C'
    ```
 
-3. **Toggle Graph Settings**:
+
+
+2. **Toggle Graph Settings**:
    - **Directed/Undirected**: Choose graph direction
    - **Weighted/Unweighted**: Enable/disable edge weights
 
