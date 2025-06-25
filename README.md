@@ -105,9 +105,9 @@ A powerful, interactive web application for visualizing and analyzing graph algo
 ### Creating a Graph
 
 1. **Adding values**: Use the bulk input to add multiple nodes
-   - A -> Normally adding a node to panel
-   - A B -> Adding an unweighted edge, Bidirectional if undirected, otherwise source(A) to target(B)
-   - A B C -> Same Edge(AB) as shown in 2nd line, with a weight value 'C'
+   a. A -> Normally adding a node to panel
+   b. A B -> Adding an unweighted edge, Bidirectional if undirected, otherwise source(A) to target(B)
+   c. A B C -> Same Edge(AB) as shown in 2nd line, with a weight value 'C'
 
    Example:
    ```
