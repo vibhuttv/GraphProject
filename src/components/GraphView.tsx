@@ -10,6 +10,8 @@ interface GraphViewProps {
   onEdgeClick?: (edgeId: string) => void;
   bridges?: [string, string][];
   articulationPoints?: string[];
+  shortestPathEdges?: string[];
+  mstEdges?: string[];
 }
 
 interface CytoscapeEvent {
@@ -27,6 +29,8 @@ const GraphView: React.FC<GraphViewProps> = ({
   onEdgeClick,
   bridges = [],
   articulationPoints = [],
+  shortestPathEdges = [],
+  mstEdges = [],
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cytoscapeInstance, setCytoscapeInstance] = useState<cytoscape.Core | null>(null);
@@ -86,6 +90,26 @@ const GraphView: React.FC<GraphViewProps> = ({
 
           }
         };
+        const shortestPathStyle = {
+          selector: '.edge-shortest-path',
+          style: {
+            'line-color': '#a855f7',
+            'width': 4,
+            'opacity': 1,
+            'target-arrow-color': settings.isDirected ? '#a855f7' : 'transparent',
+            'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
+          }
+        };
+        const mstStyle = {
+          selector: '.edge-mst',
+          style: {
+            'line-color': '#22c55e',
+            'width': 4,
+            'opacity': 1,
+            'target-arrow-color': settings.isDirected ? '#22c55e' : 'transparent',
+            'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
+          }
+        };
         const cy = cytoscape.default({
           container: containerRef.current,
           elements: {
@@ -141,32 +165,36 @@ const GraphView: React.FC<GraphViewProps> = ({
             {
               selector: '.edge-tree',
               style: {
-                'line-color': '#10b981',
-                'target-arrow-color': settings.isDirected ? '#10b981' : 'transparent',
+                'line-color': '#6b7280',
+                'width': 3,
+                'target-arrow-color': settings.isDirected ? '#6b7280' : 'transparent',
                 'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-back',
               style: {
-                'line-color': '#ef4444',
-                'target-arrow-color': settings.isDirected ? '#ef4444' : 'transparent',
+                'line-color': '#3b82f6',
+                'width': 3,
+                'target-arrow-color': settings.isDirected ? '#3b82f6' : 'transparent',
                 'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-forward',
               style: {
-                'line-color': '#3b82f6',
-                'target-arrow-color': settings.isDirected ? '#3b82f6' : 'transparent',
+                'line-color': '#22c55e',
+                'width': 3,
+                'target-arrow-color': settings.isDirected ? '#22c55e' : 'transparent',
                 'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
             {
               selector: '.edge-cross',
               style: {
-                'line-color': '#f59e0b',
-                'target-arrow-color': settings.isDirected ? '#f59e0b' : 'transparent',
+                'line-color': '#ef4444',
+                'width': 3,
+                'target-arrow-color': settings.isDirected ? '#ef4444' : 'transparent',
                 'target-arrow-shape': settings.isDirected ? 'triangle' : 'none'
               }
             },
@@ -180,7 +208,9 @@ const GraphView: React.FC<GraphViewProps> = ({
             ...sccStyles,
             bridgeStyle,
             articulationStyle,
-            highlightStyle
+            highlightStyle,
+            shortestPathStyle,
+            mstStyle
           ],
           layout: {
             name: 'cose',
@@ -258,26 +288,29 @@ const GraphView: React.FC<GraphViewProps> = ({
 
   // Apply DFS styling
   useEffect(() => {
-    if (!cytoscapeInstance || !dfsResult) return;
+    if (!cytoscapeInstance) return;
 
     // Clear previous styling
     cytoscapeInstance.elements().removeClass('node-visited edge-tree edge-back edge-forward edge-cross');
 
-    // Apply visited node styling
-    dfsResult.visited.forEach(nodeId => {
-      const node = cytoscapeInstance.getElementById(nodeId);
-      if (node.length > 0) {
-        node.addClass('node-visited');
-      }
-    });
+    // Only apply DFS styling if DFS results exist
+    if (dfsResult) {
+      // Apply visited node styling
+      dfsResult.visited.forEach(nodeId => {
+        const node = cytoscapeInstance.getElementById(nodeId);
+        if (node.length > 0) {
+          node.addClass('node-visited');
+        }
+      });
 
-    // Apply edge classifications
-    dfsResult.edgeClassifications.forEach(classification => {
-      const edge = cytoscapeInstance.getElementById(classification.edgeId);
-      if (edge.length > 0) {
-        edge.addClass(`edge-${classification.type}`);
-      }
-    });
+      // Apply edge classifications (let CSS handle the colors)
+      dfsResult.edgeClassifications.forEach(classification => {
+        const edge = cytoscapeInstance.getElementById(classification.edgeId);
+        if (edge.length > 0) {
+          edge.addClass(`edge-${classification.type}`);
+        }
+      });
+    }
   }, [dfsResult, cytoscapeInstance]);
 
   // Apply SCC styling
@@ -361,6 +394,26 @@ const GraphView: React.FC<GraphViewProps> = ({
       if (node.length > 0) node.addClass('node-articulation');
     });
   }, [articulationPoints, cytoscapeInstance]);
+
+  // Highlight shortest path edges
+  useEffect(() => {
+    if (!cytoscapeInstance) return;
+    cytoscapeInstance.edges().removeClass('edge-shortest-path');
+    shortestPathEdges.forEach(edgeId => {
+      const edge = cytoscapeInstance.getElementById(edgeId);
+      if (edge.length > 0) edge.addClass('edge-shortest-path');
+    });
+  }, [shortestPathEdges, cytoscapeInstance]);
+
+  // Highlight MST edges
+  useEffect(() => {
+    if (!cytoscapeInstance) return;
+    cytoscapeInstance.edges().removeClass('edge-mst');
+    mstEdges.forEach(edgeId => {
+      const edge = cytoscapeInstance.getElementById(edgeId);
+      if (edge.length > 0) edge.addClass('edge-mst');
+    });
+  }, [mstEdges, cytoscapeInstance]);
 
   if (error) {
     return (

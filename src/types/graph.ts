@@ -40,3 +40,14 @@ export interface DFSResult {
 export interface SCCResult {
   components: string[][];
 }
+
+export interface ShortestPathResult {
+  path: string[];
+  distance: number;
+  edges: string[];
+}
+
+export interface MSTResult {
+  edges: string[];
+  totalWeight: number;
+}

@@ -1,45 +1,79 @@
-# Graph Theory Visualizer
+# 🎯 Graph Theory Visualizer
 
-An interactive React application for visualizing graph theory concepts, designed specifically for competitive programmers. Built with Cytoscape.js and Tailwind CSS.
+A powerful, interactive web application for visualizing and analyzing graph algorithms with real-time updates and competitive programming features.
 
-## Features
+![Graph Theory Visualizer](https://img.shields.io/badge/React-18.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Cytoscape.js](https://img.shields.io/badge/Cytoscape.js-3.28.1-green) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3.0-38B2AC)
 
-### 🎯 Core Functionality
-- **Interactive Graph Visualization**: Render graphs using Cytoscape.js with smooth animations
-- **Split-Screen Layout**:
-  - Left side: Interactive graph view
-  - Right side: Graph editor and algorithm controls
-- **Graph Types**: Support for both directed and undirected graphs
-- **Weighted Graphs**: Optional edge weights for weighted graph algorithms
+## ✨ Features
 
-### 📊 Graph Operations
-- **Node Management**: Add/remove nodes with custom labels
-- **Edge Management**: Add/remove edges with optional weights
-- **Auto-Node Creation**: Automatically create nodes when adding edges
-- **Isolated Nodes**: Render nodes without edges
+### 🎨 **Modern Glassmorphism UI**
+- Beautiful glassmorphism design with backdrop blur effects
+- Responsive layout with split-screen interface
+- Pill-style toggle buttons with gradient effects
+- Real-time visual feedback and animations
 
-### 🔍 Algorithm Visualizations
-- **Depth-First Search (DFS)**:
-  - Visualize traversal order
-  - Edge classification (Tree, Back, Forward, Cross edges)
-  - Color-coded edge types
-- **Strongly Connected Components (SCC)**:
-  - Kosaraju's algorithm implementation
-  - Highlight SCCs with distinct colors
-  - Component grouping display
+### 📊 **Interactive Graph Editor**
+- **Bulk Input**: Add multiple nodes and edges at once
+- **Live Updates**: Graph changes reflect immediately in visualizations
+- **Flexible Input**: Support for both directed/undirected and weighted/unweighted graphs
+- **Dynamic Layout**: Automatic graph layout with smooth animations
 
-### 🎨 Visual Features
-- **Color-Coded Elements**:
-  - Tree edges: Green
-  - Back edges: Red
-  - Forward edges: Blue
-  - Cross edges: Yellow
-  - Visited nodes: Cyan
-  - SCC nodes: Purple
-- **Interactive Elements**: Click on nodes and edges for debugging
-- **Responsive Design**: Works on desktop and tablet devices
+### 🔍 **Advanced Graph Algorithms**
 
-## Getting Started
+#### **Depth-First Search (DFS)**
+- **Live Updates**: Automatically recalculates when graph changes
+- **Edge Classification**: Color-coded edges by type:
+  - 🟢 Tree edges (grey)
+  - 🔵 Back edges (blue)
+  - 🟢 Forward edges (green)
+  - 🔴 Cross edges (red)
+- **Visited Nodes**: Highlighted in cyan
+- **Detailed Results**: Shows traversal order and edge classifications
+
+#### **Strongly Connected Components (SCC)**
+- **Tarjan's Algorithm**: Efficient SCC detection
+- **Interactive Highlighting**: Click nodes to highlight their SCC
+- **Unique Colors**: Each component gets a distinct color
+- **Component Count**: Shows total number of SCCs found
+
+#### **Bridge Detection**
+- **Tarjan's Bridge Algorithm**: Finds all bridge edges
+- **Red Highlighting**: Bridge edges highlighted in red
+- **Live Updates**: Automatically updates when graph changes
+- **Results Display**: Shows count and list of bridges
+
+#### **Articulation Points**
+- **Cut Vertex Detection**: Identifies articulation points
+- **Red Glow Effect**: Articulation points highlighted with red border
+- **Live Updates**: Recalculates on graph changes
+- **Results Display**: Shows count and list of articulation points
+
+#### **Shortest Path**
+- **Smart Algorithm Selection**: Uses Dijkstra for weighted, BFS for unweighted
+- **Interactive Controls**: Select start and end nodes
+- **Purple Path Highlighting**: Shortest path edges in purple
+- **Distance Calculation**: Shows total path distance
+- **No Route Handling**: Displays "No route found" when appropriate
+
+#### **Minimum Spanning Tree (MST)**
+- **Kruskal's Algorithm**: Efficient MST computation
+- **Green Edge Highlighting**: MST edges in green
+- **Total Weight**: Shows MST total weight
+- **Edge List**: Displays all MST edges
+
+### 🎛️ **Smart Controls & Mutual Exclusivity**
+- **Toggle System**: All algorithms work as toggles (ON/OFF)
+- **Mutual Exclusivity**: Only one algorithm can be active at a time
+- **Automatic Cleanup**: Turning on one algorithm clears others
+- **Live Graph Updates**: All algorithms update automatically when graph changes
+
+### 📱 **Responsive Design**
+- **Mobile-Friendly**: Works on all screen sizes
+- **Split Layout**: Graph view on left, controls on right
+- **Scrollable Controls**: Handles many algorithm results
+- **Touch Support**: Works with touch devices
+
+## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -47,119 +81,160 @@ An interactive React application for visualizing graph theory concepts, designed
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd GraphProject
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd GraphProject
+   ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+4. **Open your browser**
+   Navigate to `http://localhost:5173`
 
-## Usage
+## 📖 Usage Guide
 
 ### Creating a Graph
 
-1. **Add Nodes**: Use the "Add Nodes" section to create nodes
-   - Enter a node ID and click "Add"
-   - Nodes will appear in the graph visualization
+1. **Add Nodes**: Use the bulk input to add multiple nodes
+   ```
+   A,B,C,D,E
+   ```
 
-2. **Add Edges**: Use the "Add Edges" section to create connections
-   - Enter source and target node IDs
-   - Optionally add a weight for weighted graphs
-   - Nodes will be auto-created if they don't exist
+2. **Add Edges**: Specify edges with optional weights
+   ```
+   A-B:2,B-C:3,C-D:1,D-E:4
+   ```
 
-3. **Graph Settings**: Toggle between:
-   - Directed/Undirected graphs
-   - Weighted/Unweighted graphs
+3. **Toggle Graph Settings**:
+   - **Directed/Undirected**: Choose graph direction
+   - **Weighted/Unweighted**: Enable/disable edge weights
 
 ### Running Algorithms
 
-1. **DFS Visualization**:
-   - Click "Run DFS" to start depth-first search
-   - View the traversal order in the results panel
-   - See edge classifications with color coding
+#### **DFS Analysis**
+1. Click "DFS: OFF" to turn it on
+2. View colored edges and visited nodes
+3. Check results panel for traversal details
 
-2. **SCC Detection**:
-   - Enable "Directed Graph" setting
-   - Click "Find SCCs" to identify strongly connected components
-   - View component groupings in the results panel
+#### **SCC Detection** (Directed graphs only)
+1. Ensure graph is directed
+2. Click "Find SCCs"
+3. Click nodes to highlight their components
 
-3. **Clear Results**: Use "Clear Results" to reset visualizations
+#### **Bridge Detection**
+1. Click "Bridges: OFF" to turn it on
+2. Red edges indicate bridges
+3. View bridge count and list
 
-## Project Structure
+#### **Articulation Points**
+1. Click "Articulation Points: OFF" to turn it on
+2. Red-bordered nodes are articulation points
+3. Check results for count and list
 
+#### **Shortest Path**
+1. Click "Shortest Route: OFF" to turn it on
+2. Select start and end nodes
+3. Purple path shows shortest route
+4. View distance in results
+
+#### **MST**
+1. Click "Show random MST: OFF" to turn it on
+2. Green edges form the MST
+3. Check total weight in results
+
+### Tips for Best Experience
+
+- **Start Simple**: Begin with small graphs to understand features
+- **Use Bulk Input**: Efficient for creating complex graphs
+- **Toggle Settings**: Experiment with directed/undirected modes
+- **Check Results**: Always review the results panel for detailed information
+- **Live Updates**: Modify graphs while algorithms are running to see real-time changes
+
+## 🛠️ Technical Stack
+
+- **Frontend**: React 18 with TypeScript
+- **Graph Visualization**: Cytoscape.js
+- **Styling**: Tailwind CSS with custom glassmorphism
+- **Build Tool**: Vite
+- **Package Manager**: npm
+
+## 🎯 Key Algorithms Implemented
+
+| Algorithm | Complexity | Use Case |
+|-----------|------------|----------|
+| DFS | O(V + E) | Graph traversal, cycle detection |
+| Tarjan's SCC | O(V + E) | Strongly connected components |
+| Tarjan's Bridges | O(V + E) | Bridge edge detection |
+| Articulation Points | O(V + E) | Cut vertex detection |
+| Dijkstra's | O((V + E) log V) | Shortest path (weighted) |
+| BFS | O(V + E) | Shortest path (unweighted) |
+| Kruskal's MST | O(E log E) | Minimum spanning tree |
+
+## 🔧 Development
+
+### Project Structure
 ```
 src/
 ├── components/
-│   ├── GraphView.tsx          # Main graph visualization component
-│   ├── GraphEditor.tsx        # Node/edge input forms
-│   └── AlgorithmControls.tsx  # Settings and algorithm controls
+│   ├── AlgorithmControls.tsx    # Algorithm controls and results
+│   ├── GraphEditor.tsx          # Graph input interface
+│   ├── GraphView.tsx            # Cytoscape.js visualization
+│   └── AlgorithmControls.module.css
 ├── types/
-│   └── graph.ts              # TypeScript interfaces
+│   └── graph.ts                 # TypeScript type definitions
 ├── utils/
-│   └── graphAlgorithms.ts    # DFS and SCC implementations
-├── App.tsx                   # Main application component
-└── index.css                # Global styles and Tailwind imports
+│   └── graphAlgorithms.ts       # Algorithm implementations
+└── App.tsx                      # Main application component
 ```
 
-## Technologies Used
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
-- **React 19** with TypeScript
-- **Cytoscape.js** for graph visualization
-- **Tailwind CSS** for styling
-- **Vite** for build tooling
+## 🎨 UI/UX Features
 
-## Algorithm Details
+- **Glassmorphism Design**: Modern frosted glass effect
+- **Smooth Animations**: 300ms transitions for all interactions
+- **Color-Coded Results**: Intuitive color scheme for different algorithms
+- **Responsive Layout**: Adapts to different screen sizes
+- **Interactive Elements**: Hover effects and visual feedback
 
-### DFS Implementation
-- Uses recursive depth-first search
-- Tracks discovery and finish times
-- Classifies edges based on DFS tree structure:
-  - **Tree Edge**: Edge to unvisited node
-  - **Back Edge**: Edge to ancestor in DFS tree
-  - **Forward Edge**: Edge to descendant in DFS tree
-  - **Cross Edge**: Edge between unrelated subtrees
+## 🚀 Performance Features
 
-### SCC Implementation (Kosaraju's Algorithm)
-- Two-pass DFS approach
-- First pass: Compute finish times
-- Second pass: DFS on reversed graph in finish time order
-- Groups nodes into strongly connected components
+- **Efficient Algorithms**: Optimized implementations for large graphs
+- **Live Updates**: Real-time recalculation without performance impact
+- **Memory Management**: Proper cleanup of Cytoscape instances
+- **Debounced Updates**: Prevents excessive recalculations
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Future Enhancements
+## 📄 License
 
-- [ ] Breadth-First Search (BFS) visualization
-- [ ] Shortest path algorithms (Dijkstra, Bellman-Ford)
-- [ ] Minimum Spanning Tree algorithms
-- [ ] Graph import/export functionality
-- [ ] Custom graph layouts
-- [ ] Animation controls for algorithm steps
-- [ ] Performance metrics display
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## License
+## 🙏 Acknowledgments
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- **Cytoscape.js** for powerful graph visualization
+- **Tailwind CSS** for utility-first styling
+- **React** for component-based architecture
+- **Vite** for fast development experience
 
-## Acknowledgments
+---
 
-- Cytoscape.js team for the excellent graph visualization library
-- Tailwind CSS for the utility-first CSS framework
-- The competitive programming community for inspiration
+**Built with ❤️ for competitive programming and graph theory enthusiasts**

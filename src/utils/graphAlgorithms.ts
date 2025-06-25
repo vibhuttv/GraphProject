@@ -1,4 +1,4 @@
-import type { GraphData, DFSResult, SCCResult, EdgeClassification, EdgeType } from '../types/graph';
+import type { GraphData, DFSResult, SCCResult, EdgeClassification, EdgeType, GraphSettings } from '../types/graph';
 
 export const runDFS = (graphData: GraphData, startNode?: string): DFSResult => {
   const visited: string[] = [];
@@ -222,4 +222,233 @@ export function findArticulationPoints(graphData: GraphData): { points: string[]
     if (!visited[node.id]) dfs(node.id, null);
   }
   return { points: Array.from(points) };
+}
+
+// Find shortest path using Dijkstra's algorithm (for weighted graphs)
+export function findShortestPathDijkstra(
+  graphData: GraphData,
+  startNode: string,
+  endNode: string,
+  settings: GraphSettings
+): { path: string[], distance: number, edges: string[] } | null {
+  const distances: { [key: string]: number } = {};
+  const previous: { [key: string]: string | null } = {};
+  const visited: Set<string> = new Set();
+
+  // Initialize distances
+  graphData.nodes.forEach(node => {
+    distances[node.id] = Infinity;
+    previous[node.id] = null;
+  });
+  distances[startNode] = 0;
+
+  // Create adjacency list with weights
+  const adjacencyList: { [key: string]: { node: string; weight: number }[] } = {};
+  graphData.nodes.forEach(node => {
+    adjacencyList[node.id] = [];
+  });
+
+  graphData.edges.forEach(edge => {
+    const weight = edge.weight || 1; // Default weight of 1 if not specified
+    adjacencyList[edge.source].push({ node: edge.target, weight });
+  });
+
+  while (visited.size < graphData.nodes.length) {
+    // Find unvisited node with minimum distance
+    let minNode = '';
+    let minDistance = Infinity;
+
+    for (const nodeId in distances) {
+      if (!visited.has(nodeId) && distances[nodeId] < minDistance) {
+        minDistance = distances[nodeId];
+        minNode = nodeId;
+      }
+    }
+
+    if (minNode === '') break; // No path exists
+
+    visited.add(minNode);
+
+    // Update distances to neighbors
+    adjacencyList[minNode].forEach(({ node, weight }) => {
+      const newDistance = distances[minNode] + weight;
+      if (newDistance < distances[node]) {
+        distances[node] = newDistance;
+        previous[node] = minNode;
+      }
+    });
+  }
+
+  // Reconstruct path
+  if (distances[endNode] === Infinity) {
+    return null; // No path exists
+  }
+
+  const path: string[] = [];
+  const edges: string[] = [];
+  let current = endNode;
+
+  while (current !== null) {
+    path.unshift(current);
+    const prev = previous[current];
+    if (prev !== null) {
+      // Find the edge between prev and current
+      const edge = graphData.edges.find(e =>
+        (e.source === prev && e.target === current) ||
+        (!settings.isDirected && e.source === current && e.target === prev)
+      );
+      if (edge) {
+        edges.unshift(edge.id);
+      }
+    }
+    current = prev!;
+  }
+
+  return {
+    path,
+    distance: distances[endNode],
+    edges
+  };
+}
+
+// Find shortest path using BFS (for unweighted graphs)
+export function findShortestPathBFS(
+  graphData: GraphData,
+  startNode: string,
+  endNode: string,
+  settings: GraphSettings
+): { path: string[], distance: number, edges: string[] } | null {
+  const queue: { node: string; path: string[]; edges: string[] }[] = [];
+  const visited: Set<string> = new Set();
+
+  queue.push({ node: startNode, path: [startNode], edges: [] });
+  visited.add(startNode);
+
+  // Create adjacency list
+  const adjacencyList: { [key: string]: string[] } = {};
+  graphData.nodes.forEach(node => {
+    adjacencyList[node.id] = [];
+  });
+
+  graphData.edges.forEach(edge => {
+    adjacencyList[edge.source].push(edge.target);
+    if (!settings.isDirected) {
+      adjacencyList[edge.target].push(edge.source);
+    }
+  });
+
+  while (queue.length > 0) {
+    const { node, path, edges } = queue.shift()!;
+
+    if (node === endNode) {
+      return {
+        path,
+        distance: path.length - 1,
+        edges
+      };
+    }
+
+    adjacencyList[node].forEach(neighbor => {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+
+        // Find the edge between node and neighbor
+        const edge = graphData.edges.find(e =>
+          (e.source === node && e.target === neighbor) ||
+          (!settings.isDirected && e.source === neighbor && e.target === node)
+        );
+
+        const newEdges = edge ? [...edges, edge.id] : edges;
+        queue.push({
+          node: neighbor,
+          path: [...path, neighbor],
+          edges: newEdges
+        });
+      }
+    });
+  }
+
+  return null; // No path exists
+}
+
+// Main shortest path function that chooses algorithm based on graph type
+export function findShortestPath(
+  graphData: GraphData,
+  startNode: string,
+  endNode: string,
+  settings: GraphSettings
+): { path: string[], distance: number, edges: string[] } | null {
+  if (graphData.nodes.length === 0) return null;
+
+  // Use Dijkstra for weighted graphs, BFS for unweighted
+  if (settings.isWeighted) {
+    return findShortestPathDijkstra(graphData, startNode, endNode, settings);
+  } else {
+    return findShortestPathBFS(graphData, startNode, endNode, settings);
+  }
+}
+
+// Find Minimum Spanning Tree using Kruskal's algorithm
+export function findMST(graphData: GraphData): { edges: string[], totalWeight: number } {
+  if (graphData.nodes.length === 0) {
+    return { edges: [], totalWeight: 0 };
+  }
+
+  // Create edges with weights (default to 1 if not specified)
+  const edgesWithWeights = graphData.edges.map(edge => ({
+    ...edge,
+    weight: edge.weight || 1
+  }));
+
+  // Sort edges by weight
+  edgesWithWeights.sort((a, b) => a.weight - b.weight);
+
+  // Union-Find data structure for cycle detection
+  const parent: { [key: string]: string } = {};
+  const rank: { [key: string]: number } = {};
+
+  // Initialize Union-Find
+  graphData.nodes.forEach(node => {
+    parent[node.id] = node.id;
+    rank[node.id] = 0;
+  });
+
+  // Find function for Union-Find
+  const find = (x: string): string => {
+    if (parent[x] !== x) {
+      parent[x] = find(parent[x]);
+    }
+    return parent[x];
+  };
+
+  // Union function for Union-Find
+  const union = (x: string, y: string): boolean => {
+    const rootX = find(x);
+    const rootY = find(y);
+
+    if (rootX === rootY) return false; // Already in same set
+
+    if (rank[rootX] < rank[rootY]) {
+      parent[rootX] = rootY;
+    } else if (rank[rootX] > rank[rootY]) {
+      parent[rootY] = rootX;
+    } else {
+      parent[rootY] = rootX;
+      rank[rootX]++;
+    }
+    return true;
+  };
+
+  const mstEdges: string[] = [];
+  let totalWeight = 0;
+
+  // Process edges in ascending order of weight
+  for (const edge of edgesWithWeights) {
+    if (union(edge.source, edge.target)) {
+      mstEdges.push(edge.id);
+      totalWeight += edge.weight;
+    }
+  }
+
+  return { edges: mstEdges, totalWeight };
 }

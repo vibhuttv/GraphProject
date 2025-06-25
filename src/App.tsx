@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import GraphView from './components/GraphView';
 import GraphEditor from './components/GraphEditor';
 import AlgorithmControls from './components/AlgorithmControls';
-import type { GraphData, GraphSettings, DFSResult, SCCResult } from './types/graph';
-import { runDFS, findSCCs, findBridges, findArticulationPoints } from './utils/graphAlgorithms';
+import type { GraphData, GraphSettings, DFSResult, SCCResult, ShortestPathResult, MSTResult } from './types/graph';
+import { runDFS, findSCCs, findBridges, findArticulationPoints, findShortestPath, findMST } from './utils/graphAlgorithms';
 import './App.css';
 
 function App() {
@@ -14,17 +14,46 @@ function App() {
     isWeighted: false
   });
   const [dfsResult, setDfsResult] = useState<DFSResult | undefined>();
+  const [dfsOn, setDfsOn] = useState(false);
   const [sccResult, setSccResult] = useState<SCCResult | undefined>();
   const [bridgesOn, setBridgesOn] = useState(false);
   const [bridges, setBridges] = useState<[string, string][]>([]);
   const [articulationOn, setArticulationOn] = useState(false);
   const [articulationPoints, setArticulationPoints] = useState<string[]>([]);
+  const [shortestRouteOn, setShortestRouteOn] = useState(false);
+  const [startNode, setStartNode] = useState('');
+  const [endNode, setEndNode] = useState('');
+  const [shortestPathResult, setShortestPathResult] = useState<ShortestPathResult | null | undefined>(undefined);
+  const [mstOn, setMstOn] = useState(false);
+  const [mstResult, setMstResult] = useState<MSTResult | undefined>();
 
-  const handleRunDFS = () => {
-    if (graphData.nodes.length > 0) {
+  // const handleRunDFS = () => {
+  //   if (graphData.nodes.length > 0) {
+  //     // Turn off Bridges and MST when running DFS
+  //     setBridgesOn(false);
+  //     setBridges([]);
+  //     setMstOn(false);
+  //     setMstResult(undefined);
+
+  //     const result = runDFS(graphData);
+  //     setDfsResult(result);
+  //     setSccResult(undefined); // Clear SCC results when running DFS
+  //   }
+  // };
+
+  const handleToggleDFS = (on: boolean) => {
+    setDfsOn(on);
+    if (on) {
+      // Turn off Bridges and MST when DFS is turned on
+      setBridgesOn(false);
+      setBridges([]);
+      setMstOn(false);
+      setMstResult(undefined);
       const result = runDFS(graphData);
       setDfsResult(result);
       setSccResult(undefined); // Clear SCC results when running DFS
+    } else {
+      setDfsResult(undefined);
     }
   };
 
@@ -38,16 +67,24 @@ function App() {
 
   const handleClearResults = () => {
     setDfsResult(undefined);
+    setDfsOn(false);
     setSccResult(undefined);
     setBridges([]);
     setBridgesOn(false);
     setArticulationPoints([]);
     setArticulationOn(false);
+    setShortestPathResult(undefined);
+    setMstResult(undefined);
   };
 
   const handleToggleBridges = (on: boolean) => {
     setBridgesOn(on);
     if (on) {
+      // Turn off DFS, MST when Bridges is turned on
+      setDfsResult(undefined);
+      setDfsOn(false);
+      setMstOn(false);
+      setMstResult(undefined);
       const { bridges } = findBridges(graphData);
       setBridges(bridges);
     } else {
@@ -65,6 +102,17 @@ function App() {
     }
   };
 
+  const handleToggleMST = (on: boolean) => {
+    setMstOn(on);
+    if (on) {
+      // Turn off DFS, Bridges when MST is turned on
+      setDfsResult(undefined);
+      setDfsOn(false);
+      setBridgesOn(false);
+      setBridges([]);
+    }
+  };
+
   const handleNodeClick = (nodeId: string) => {
     console.log('Node clicked:', nodeId);
   };
@@ -73,8 +121,28 @@ function App() {
     console.log('Edge clicked:', edgeId);
   };
 
+  // const handleShortestPath = () => {
+  //   if (startNode && endNode && graphData.nodes.length > 0) {
+  //     console.log('Manual shortest path calculation:', { startNode, endNode });
+  //     const result = findShortestPath(graphData, startNode, endNode, settings);
+  //     console.log('Manual result:', result);
+  //     setShortestPathResult(result);
+  //   }
+  // };
+
+  // const handleMST = () => {
+  //   if (graphData.nodes.length > 0) {
+  //     const result = findMST(graphData);
+  //     setMstResult(result);
+  //   }
+  // };
+
   // Recompute bridges when graph updates and bridgesOn is true
   useEffect(() => {
+    if (dfsOn) {
+      const result = runDFS(graphData);
+      setDfsResult(result);
+    }
     if (bridgesOn) {
       const { bridges } = findBridges(graphData);
       setBridges(bridges);
@@ -83,7 +151,25 @@ function App() {
       const { points } = findArticulationPoints(graphData);
       setArticulationPoints(points);
     }
-  }, [graphData, bridgesOn, articulationOn]);
+    if (shortestRouteOn && startNode && endNode) {
+      console.log('Calculating shortest path:', { startNode, endNode, graphData: graphData.nodes.length });
+      const result = findShortestPath(graphData, startNode, endNode, settings);
+      console.log('Shortest path result:', result);
+      setShortestPathResult(result);
+    } else if (!shortestRouteOn) {
+      console.log('Clearing shortest path result');
+      setShortestPathResult(undefined);
+    } else if (shortestRouteOn && (!startNode || !endNode)) {
+      console.log('Clearing result - missing start or end node');
+      setShortestPathResult(undefined);
+    }
+    if (mstOn) {
+      const result = findMST(graphData);
+      setMstResult(result);
+    } else {
+      setMstResult(undefined);
+    }
+  }, [graphData, dfsOn, bridgesOn, articulationOn, shortestRouteOn, startNode, endNode, settings, mstOn]);
 
   return (
     <div className="min-h-screen text-white">
@@ -113,6 +199,8 @@ function App() {
                   onEdgeClick={handleEdgeClick}
                   bridges={bridgesOn ? bridges : []}
                   articulationPoints={articulationOn ? articulationPoints : []}
+                  shortestPathEdges={shortestPathResult?.edges || []}
+                  mstEdges={mstResult?.edges || []}
                 />
               </div>
             </div>
@@ -133,7 +221,8 @@ function App() {
                 settings={settings}
                 onSettingsChange={setSettings}
                 graphData={graphData}
-                onRunDFS={handleRunDFS}
+                dfsOn={dfsOn}
+                onToggleDFS={handleToggleDFS}
                 onRunSCC={handleRunSCC}
                 onClearResults={handleClearResults}
                 dfsResult={dfsResult}
@@ -142,6 +231,18 @@ function App() {
                 onToggleBridges={handleToggleBridges}
                 articulationOn={articulationOn}
                 onToggleArticulation={handleToggleArticulation}
+                shortestRouteOn={shortestRouteOn}
+                onToggleShortestRoute={setShortestRouteOn}
+                shortestPathResult={shortestPathResult}
+                startNode={startNode}
+                endNode={endNode}
+                onStartNodeChange={setStartNode}
+                onEndNodeChange={setEndNode}
+                mstOn={mstOn}
+                onToggleMST={handleToggleMST}
+                mstResult={mstResult}
+                bridges={bridges}
+                articulationPoints={articulationPoints}
               />
             </div>
           </div>
