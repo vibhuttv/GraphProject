@@ -2,6 +2,8 @@
 
 A powerful, interactive web application for visualizing and analyzing graph algorithms with real-time updates and competitive programming features.
 
+[🎥 **Watch Demo Video**](https://www.loom.com/share/80060719960342f9a281a8442290b1f6?sid=6f10dd9b-1851-4a79-aa81-cb5424078381)
+
 ![Graph Theory Visualizer](https://img.shields.io/badge/React-18.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Cytoscape.js](https://img.shields.io/badge/Cytoscape.js-3.28.1-green) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3.0-38B2AC)
 
 ## ✨ Features
